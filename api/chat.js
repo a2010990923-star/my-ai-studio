@@ -4,7 +4,7 @@ export default async function handler(req, res) {
     }
 
     const userMessage = req.body.message;
-    const apiKey = process.env.GEMINI_API_KEY; // 🔒 雲端環境變數，外人點右鍵檢查絕對看不到！
+    const apiKey = process.env.GEMINI_API_KEY; 
 
     if (!apiKey) {
         return res.status(500).json({ reply: "（城堡提示：後台似乎還沒有設定 GEMINI_API_KEY 喔！）" });
@@ -19,15 +19,22 @@ export default async function handler(req, res) {
                 systemInstruction: {
                     parts: [{ text: "你是 TAIN的AI助理。講話語氣要極其隨和、自然、口語化（像跟朋友在 LINE 上傳訊息一樣），回答要非常精簡直接，不要長篇大論。除非對方主動問起，否則絕對不要主動提到『AI、模型、機器人、演算法』等字眼，也不要刻意扯到股票或投資。像個普通的聰明人類一樣聊天即可。" }]
                 },
-                tools: [{ googleSearch: {} }] // 啟用 Google 自動網頁搜尋能力
+                tools: [{ googleSearch: {} }] 
             })
         });
 
         const data = await googleResponse.json();
-        const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || "我晃神了一下，你剛剛說什麼？";
-        
+
+        // 🔍 【偵探核心】如果 Google 沒有給出正確答案，直接把 Google 的神祕報錯訊息吐在畫面上！
+        if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+            return res.status(200).json({ 
+                reply: `❌ 城堡連線失敗！Google 回傳的原廠錯誤報告：${JSON.stringify(data)}` 
+            });
+        }
+
+        const replyText = data.candidates[0].content.parts[0].text;
         return res.status(200).json({ reply: replyText });
     } catch (error) {
-        return res.status(500).json({ reply: "城堡內部通訊稍微卡住了，請再試一次！" });
+        return res.status(500).json({ reply: `城堡內部徹底斷線，錯誤原因: ${error.message}` });
     }
 }
