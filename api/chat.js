@@ -11,7 +11,8 @@ export default async function handler(req, res) {
     }
 
     try {
-        const googleResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        // 🚀 這裡升級成最新、完全支援連網搜尋的 gemini-2.0-flash 模型！
+        const googleResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -25,7 +26,7 @@ export default async function handler(req, res) {
 
         const data = await googleResponse.json();
 
-        // 🔍 【偵探核心】如果 Google 沒有給出正確答案，直接把 Google 的神祕報錯訊息吐在畫面上！
+        // 如果 Google 沒有給出正確答案，直接把 Google 的神祕報錯訊息吐在畫面上
         if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
             return res.status(200).json({ 
                 reply: `❌ 城堡連線失敗！Google 回傳的原廠錯誤報告：${JSON.stringify(data)}` 
